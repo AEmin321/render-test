@@ -1,5 +1,7 @@
 const express = require ('express')
 const cors = require ('cors')
+require('dotenv').config()
+const Note = require ('./models/note')
 const app = express()
 app.use(cors())
 app.use(express.json())
@@ -28,14 +30,10 @@ let notes = [
   }
 
   app.post ('/api/notes',(req,res)=>{
-    const note=req.body
-    const newNote={
-      id:randomID(),
-      content:note.content,
-      important:note.important||false
+    const data = req.body
+    if (data.content===undefined){
+      return res.status(400).json({error:'Content is missing sir.'})
     }
-    notes.concat(newNote)
-    res.json(note)
   })
 
   app.get ('/api/notes/:id',(req,res)=>{
@@ -55,7 +53,9 @@ let notes = [
   })
 
   app.get ('/api/notes',(req,res)=>{
-    res.json(notes)
+    Note.find({}).then(response=>{
+      res.json(response)
+    })
   })
 
   const PORT = process.env.PORT||3002
