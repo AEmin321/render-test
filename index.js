@@ -34,16 +34,19 @@ let notes = [
     if (data.content===undefined){
       return res.status(400).json({error:'Content is missing sir.'})
     }
+    const note = new Note({
+      content: data.content,
+      important: data.important||false
+    })
+    note.save().then(response=>{
+      res.json(response)
+    })
   })
 
-  app.get ('/api/notes/:id',(req,res)=>{
-    const id=Number(req.params.id)
-    const note=notes.find(item=>item.id===id)
-    if (note){
-        res.json(note)
-    }else {
-        res.status(404).end()
-    }
+  app.get('/api/notes/:id',(req,res)=>{
+    Note.findById(req.params.id).then(response=>{
+      res.json(response)
+    })
   })
 
   app.delete ('/api/notes/:id',(req,res)=>{
