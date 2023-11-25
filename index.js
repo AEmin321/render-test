@@ -3,6 +3,19 @@ const cors = require ('cors')
 require('dotenv').config()
 const Note = require ('./models/note')
 const app = express()
+
+const unknownEndPoint = (req,res) =>{
+  res.status(404).send({error:'This end point doesnt exist.'})
+}
+
+const errorHandler =(error,req,res,next)=>{
+  console.error(error.message)
+  if (error.name==='CastError'){
+    return res.status(400).send({error:'malformatted id.'})
+  }
+  next(error)
+}
+
 app.use(cors())
 app.use(express.json())
 app.use(express.static('dist'))
@@ -43,10 +56,14 @@ let notes = [
     })
   })
 
-  app.get('/api/notes/:id',(req,res)=>{
+  app.get('/api/notes/:id',(req,res,next)=>{
     Note.findById(req.params.id).then(response=>{
-      res.json(response)
-    })
+      if (response){
+        res.json(response)
+      }else {
+        res.status(404).end()
+      }
+    }).catch(error=>next(error))
   })
 
   app.delete ('/api/notes/:id',(req,res)=>{
@@ -60,6 +77,9 @@ let notes = [
       res.json(response)
     })
   })
+
+  app.use (errorHandler)
+  app.use (unknownEndPoint)
 
   const PORT = process.env.PORT||3002
   app.listen(PORT,()=>{
