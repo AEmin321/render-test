@@ -66,10 +66,10 @@ let notes = [
     }).catch(error=>next(error))
   })
 
-  app.delete ('/api/notes/:id',(req,res)=>{
-    const id=Number(req.params.id)
-    note=notes.filter(item=>item.id!==id)
-    res.status(204).end()
+  app.delete ('/api/notes/:id',(req,res,next)=>{
+    Note.findByIdAndDelete(req.params.id).then(response=>{
+      res.status(204).end()
+    }).catch(error=>next(error))
   })
 
   app.get ('/api/notes',(req,res)=>{
