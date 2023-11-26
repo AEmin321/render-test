@@ -42,18 +42,15 @@ let notes = [
     return Math.floor (Math.random()*100)+1
   }
 
-  app.post ('/api/notes',(req,res)=>{
+  app.post ('/api/notes',(req,res,next)=>{
     const data = req.body
-    if (data.content===undefined){
-      return res.status(400).json({error:'Content is missing sir.'})
-    }
     const note = new Note({
       content: data.content,
       important: data.important||false
     })
     note.save().then(response=>{
       res.json(response)
-    })
+    }).catch(error=>next(error))
   })
 
   app.get('/api/notes/:id',(req,res,next)=>{
