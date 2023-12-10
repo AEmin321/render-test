@@ -8,7 +8,7 @@ notesRouter.post ('/',(req,res,next) => {
 		important: data.important||false
 	})
 	note.save().then(response => {
-		res.json(response)
+		res.status(201).json(response)
 	}).catch(error => next(error))
 })
 
@@ -39,10 +39,9 @@ notesRouter.delete ('/:id',(req,res,next) => {
 	}).catch(error => next(error))
 })
 
-notesRouter.get ('/',(req,res) => {
-	Note.find({}).then(response => {
-		res.json(response)
-	})
+notesRouter.get ('/',async(req,res) => {
+	const notes=await Note.find({})
+	res.json(notes)
 })
 
 module.exports = notesRouter
