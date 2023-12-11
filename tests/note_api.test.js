@@ -30,7 +30,7 @@ test('testing the content validation', async() => {
 		important:true
 	}
 	await api.post('/api/notes').send(newObj).expect(400)
-	const notes = await api.get({})
+	const notes = await api.get('/api/notes')
 	expect(notes.body).toHaveLength(initialize.length)
 }, 100000)
 
