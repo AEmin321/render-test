@@ -15,6 +15,23 @@ beforeEach(async () => {
 	await newNote.save()
 }, 100000)
 
+test('specific note', async() => {
+	const defaultNotes = await testHelper.notesInDatabase()
+	const note = defaultNotes[0]
+	const result = await api.get(`/api/notes/${note.id}`).expect(200).expect('Content-Type',/application\/json/)
+	expect(result.body).toEqual(defaultNotes[0])
+}, 10000)
+
+test('note can be deleted', async() => {
+	const notesAtStart = await testHelper.notesInDatabase()
+	const gonnaDelete = notesAtStart[0]
+	await api.delete(`/api/notes/${gonnaDelete.id}`).expect(204)
+	const notesAtEnd = await testHelper.notesInDatabase()
+	expect(notesAtEnd).toHaveLength(testHelper.initialObjects.length-1)
+	const contents = notesAtEnd.map(item => item.content)
+	expect(contents).not.toContain(gonnaDelete.content)
+}, 10000)
+
 test('testing the content validation', async() => {
 	const newObj = {
 		important:true

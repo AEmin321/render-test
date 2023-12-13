@@ -1,15 +1,18 @@
 const notesRouter = require ('express').Router()
 const Note = require ('../models/note')
 
-notesRouter.post ('/',(req,res,next) => {
+notesRouter.post ('/',async(req,res,next) => {
 	const data = req.body
 	const note = new Note({
 		content: data.content,
 		important: data.important||false
 	})
-	note.save().then(response => {
-		res.status(201).json(response)
-	}).catch(error => next(error))
+	try {
+		const savedNote = await note.save()
+		res.status(201).json(savedNote)
+	} catch (error) {
+		next(error)
+	}
 })
 
 notesRouter.get('/:id',(req,res,next) => {
