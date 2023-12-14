@@ -9,10 +9,10 @@ const testHelper = require('./test_helper')
 
 beforeEach(async () => {
 	await Note.deleteMany({})
-	let newNote = new Note(testHelper.initialObjects[0])
-	await newNote.save()
-	newNote = new Note(testHelper.initialObjects[1])
-	await newNote.save()
+	console.log('removed the items.')
+	const noteObjects = testHelper.initialObjects.map(item => new Note(item))
+	const promiseObjects = noteObjects.map(item => item.save())
+	await Promise.all(promiseObjects)
 }, 100000)
 
 test('specific note', async() => {

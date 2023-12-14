@@ -1,45 +1,38 @@
 const notesRouter = require ('express').Router()
 const Note = require ('../models/note')
 
-notesRouter.post ('/',async(req,res,next) => {
+notesRouter.post ('/',async(req,res) => {
 	const data = req.body
 	const note = new Note({
 		content: data.content,
 		important: data.important||false
 	})
-	try {
-		const savedNote = await note.save()
-		res.status(201).json(savedNote)
-	} catch (error) {
-		next(error)
+	const savedNote = await note.save()
+	res.status(201).json(savedNote)
+})
+
+notesRouter.get('/:id',async(req,res) => {
+	const findItem = await Note.findById(req.params.id)
+	if (findItem){
+		res.json(findItem)
+	}else {
+		res.status(404).end()
 	}
 })
 
-notesRouter.get('/:id',(req,res,next) => {
-	Note.findById(req.params.id).then(response => {
-		if (response){
-			res.json(response)
-		}else {
-			res.status(404).end()
-		}
-	}).catch(error => next(error))
-})
-
-notesRouter.put ('/:id',(req,res,next) => {
+notesRouter.put ('/:id',async(req,res) => {
 	const data = req.body
 	const updatedObject = {
 		content:data.content,
 		important:data.important
 	}
-	Note.findByIdAndUpdate(req.params.id,updatedObject,{ new : true }).then(response => {
-		res.json(response)
-	}).catch(error => next(error))
+	const update = await Note.findByIdAndUpdate(req.params.id,updatedObject,{ new : true })
+	res.json(update)
 })
 
-notesRouter.delete ('/:id',(req,res,next) => {
-	Note.findByIdAndDelete(req.params.id).then(() => {
-		res.status(204).end()
-	}).catch(error => next(error))
+notesRouter.delete ('/:id',async(req,res) => {
+	await Note.findByIdAndDelete(req.params.id)
+	res.status(204).end()
 })
 
 notesRouter.get ('/',async(req,res) => {
