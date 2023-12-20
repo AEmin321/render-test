@@ -6,14 +6,32 @@ const app = require ('../app')
 const api = supertest (app)
 const Note = require('../models/note')
 const testHelper = require('./test_helper')
+const bcrypt = require('bcrypt')
+const User = require('../models/user')
+
 
 beforeEach(async () => {
 	await Note.deleteMany({})
-	console.log('removed the items.')
-	const noteObjects = testHelper.initialObjects.map(item => new Note(item))
-	const promiseObjects = noteObjects.map(item => item.save())
-	await Promise.all(promiseObjects)
+	await Note.insertMany(testHelper.initialObjects)
 }, 100000)
+
+describe('When there is initial notes saved',() => {
+	test('notes returned as json',async () => {
+		await api.get('/api/notes')
+			.expect(200)
+			.expect('Content-Type', /application\/json/)
+	}, 10000)
+
+	test('there are two notes in test db', async () => {
+		const res = await testHelper.notesInDatabase()
+		expect(res).toHaveLength(testHelper.initialObjects.length)
+	}, 10000)
+
+	test('first item content is html is easy as fuck...', async () => {
+		const res = await testHelper.notesInDatabase()
+		expect(res[0].content).toBe('HTML is easy')
+	}, 10000)
+})
 
 test('specific note', async() => {
 	const defaultNotes = await testHelper.notesInDatabase()
@@ -56,21 +74,32 @@ test('Testing the get with async function', async() => {
 	expect(contents).toContain('newcontent')
 }, 100000)
 
-test('there are two notes in test db', async () => {
-	const res = await testHelper.notesInDatabase()
-	expect(res).toHaveLength(testHelper.initialObjects.length)
-}, 10000)
+describe('Testing the users',() => {
+	beforeAll(async() => {
+		await User.deleteMany({})
+		const hashPass = await bcrypt.hash('nevar',10)
+		const testUser = new User({
+			username:'root',
+			passwordHash:hashPass
+		})
+		await testUser.save()
+	})
 
-test('first item content is html is easy as fuck...', async () => {
-	const res = await testHelper.notesInDatabase()
-	expect(res[0].content).toBe('HTML is easy')
-}, 10000)
+	test('creation succeeds with new user post',async() => {
+		const usersBefore = await testHelper.usersInDb()
+		const newUser ={
+			username:'filani',
+			name:'nevar',
+			password:'yokamk'
+		}
+		await api.post('/api/users').send(newUser).expect(201).expect('Content-Type',/application\/json/)
+		const usersAfter = await testHelper.usersInDb()
+		const userNames = usersAfter.map(user => user.username)
 
-test('notes returned as json',async () => {
-	await api.get('/api/notes')
-		.expect(200)
-		.expect('Content-Type', /application\/json/)
-}, 10000)
+		expect(usersAfter).toHaveLength(usersBefore.length+1)
+		expect(userNames).toContain('filani')
+	})
+})
 
 afterAll(async () => {
 	await mongoose.connection.close()
