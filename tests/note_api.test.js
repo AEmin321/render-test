@@ -99,6 +99,19 @@ describe('Testing the users',() => {
 		expect(usersAfter).toHaveLength(usersBefore.length+1)
 		expect(userNames).toContain('filani')
 	})
+
+	test('when user name is taken creation fails with proper status code',async() => {
+		const users = await testHelper.usersInDb()
+		const newUser = {
+			username:'filani',
+			name:'asdlkfj',
+			password:'yoka'
+		}
+		const result = await api.post('/api/users').send(newUser).expect(400).expect('Content-Type',/application\/json/)
+		expect(result.body.error).toContain('expected `username` to be unique')
+		const usersAfter = await testHelper.usersInDb()
+		expect(usersAfter).toEqual(users)
+	})
 })
 
 afterAll(async () => {
